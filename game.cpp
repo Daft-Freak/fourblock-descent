@@ -3,6 +3,8 @@
 
 using namespace blit;
 
+static const Font font(asset_font8x8);
+
 static const int gridWidth = 10, gridHeight = 15;
 static uint8_t grid[gridWidth * gridHeight]{0};
 
@@ -328,6 +330,12 @@ void render(uint32_t time) {
         }
 
     }
+
+    int x = gridWidth * blockSize + 8;
+    int infoW = screen.bounds.w - (gridWidth * blockSize + 16);
+
+    screen.text("Score:", font, Point(x, 8));
+    screen.text(std::to_string(score), font, Rect(x, 8, infoW, 8), true, TextAlign::top_right);
 }
 
 

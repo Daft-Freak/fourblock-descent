@@ -1,6 +1,9 @@
 assets.cpp:
   prefix: asset_
 
-  assets/tetris.png:
-    name: tetris_sprites
+  assets/tetris.png: tetris_sprites
+
+  assets/8x8font.png:
+    name: font8x8
+    type: font/image
 
