@@ -3,7 +3,7 @@
 
 using namespace blit;
 
-static const int width = 10, height = 20;
+static const int width = 10, height = 15;
 static uint8_t grid[width * height]{0};
 
 struct Block {
@@ -279,7 +279,7 @@ bool checkLost() {
 }
 
 void init() {
-    set_screen_mode(ScreenMode::hires);
+    set_screen_mode(ScreenMode::lores);
 
     screen.sprites = Surface::load(asset_tetris_sprites);
 }
@@ -297,11 +297,11 @@ static void drawTile(int x, int y, bool isFall) {
 }
 
 void render(uint32_t time) {
-    screen.pen = Pen(0xFF,0xFF,0xFF);
+    screen.pen = Pen(0, 0, 0);
     screen.clear();
 
-    screen.pen = Pen(0, 0, 0);
-    screen.h_span(Point(0, 8 * height), 8 * width);
+    screen.pen = Pen(0xFF,0xFF,0xFF);
+    screen.rectangle(Rect(0, 0, width * 8, height * 8));
 
     for(int y = 0; y < height; y++) {
         for(int x = 0; x < width; x++) {
