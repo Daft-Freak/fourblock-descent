@@ -8,26 +8,16 @@ static uint8_t grid[width * height]{0};
 
 struct Block {
     bool pattern[2][4];
-    int sprite = 0;
     int width = 0, height = 0;
 };
 
 Block blocks[]{
-    //I
+    //Z
     {
         {
-            {true, true, true, true}
+            {true, true, false},
+            {false, true, true}
         },
-        4,
-        4, 1
-    },
-    //J
-    {
-        {
-            {true},
-            {true, true, true}
-        },
-        5,
         3, 2
     },
     //L
@@ -36,25 +26,6 @@ Block blocks[]{
             {false, false, true},
             {true, true, true}
         },
-        1,
-        3, 2
-    },
-    //Z
-    {
-        {
-            {true, true, false},
-            {false, true, true}
-        },
-        0,
-        3, 2
-    },
-    //S
-    {
-        {
-            {false, true, true},
-            {true, true, false}
-        },
-        3,
         3, 2
     },
     //O
@@ -63,8 +34,30 @@ Block blocks[]{
             {true, true},
             {true, true}
         },
-        2,
         2, 2
+    },
+    //S
+    {
+        {
+            {false, true, true},
+            {true, true, false}
+        },
+        3, 2
+    },
+    //I
+    {
+        {
+            {true, true, true, true}
+        },
+        4, 1
+    },
+    //J
+    {
+        {
+            {true},
+            {true, true, true}
+        },
+        3, 2
     },
     //T
     {
@@ -72,7 +65,6 @@ Block blocks[]{
             {false, true},
             {true, true, true}
         },
-        6,
         3, 2
     }
 };
@@ -301,7 +293,7 @@ static void drawTile(int x, int y, bool isFall) {
         tile = grid[x + y * width] - 1;
 
     int blockSize = 8;
-    screen.sprite(blocks[tile].sprite, Point(x * blockSize, y * blockSize));
+    screen.sprite(tile, Point(x * blockSize, y * blockSize));
 }
 
 void render(uint32_t time) {
