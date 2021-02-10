@@ -410,17 +410,79 @@ void render(uint32_t time) {
     }
 }
 
+static int autoDelay = 0;
+
+static void autoPlay() {
+
+    if(autoDelay) {
+        autoDelay--;
+        return;
+    }
+
+    autoDelay = 15;
+
+    // "ai" player
+    int optX = 0, optRot = 0;
+
+    auto &block = blocks[blockFalling.id];
+
+    // attempt to place block as low as possible
+    int maxY = -1;
+
+    auto savedPos = blockFalling.pos;
+
+    for(int rot = 0; rot < 3; rot++) {
+        for(int x = 0; x < gridWidth; x++) {
+            for(int y = 0; y < gridHeight; y++) {
+
+                blockFalling.pos = Point(x, y);
+
+                // check (rotated) w/h
+                int w = block.width;
+                int h = block.height;
+
+                if(rot == 1 || rot == 3)
+                    std::swap(w, h);
+
+                if(x + w > gridWidth || y + h > gridHeight)
+                    continue;
+
+                if(!blockHitRot(rot) && y + h > maxY) {
+                    optX = x;
+                    maxY = y + h;
+                    optRot = rot;
+                }
+            }
+        }
+    }
+
+    blockFalling.pos = savedPos;
+
+    if(blockFalling.rot != optRot)
+        rotate = 1;
+    else if(optX > blockFalling.pos.x)
+        move = 1;
+    else if(optX < blockFalling.pos.x)
+        move = -1;
+}
 
 void update(uint32_t time) {
     if(gameEnded || !gameStarted) {
         if(buttons.released & Button::A)
             reset();
 
-        return;
+        if(gameEnded)
+            return;
     }
 
     if(checkLost()) {
-        gameEnded = true;
+        if(gameStarted)
+            gameEnded = true;
+        else {
+            // reset auto-play
+            reset();
+            gameStarted = false;
+        }
         return;
     }
 
@@ -449,13 +511,17 @@ void update(uint32_t time) {
     if(isFalling) return;
 
     // input
-    if(buttons.pressed & Button::A)
-        rotate = 1;
+    if(!gameStarted) {
+        autoPlay();
+    } else {
+        if(buttons.pressed & Button::A)
+            rotate = 1;
 
-    if(buttons.pressed & Button::DPAD_LEFT)
-        move = -1;
-    else if(buttons.pressed & Button::DPAD_RIGHT)
-        move = 1;
+        if(buttons.pressed & Button::DPAD_LEFT)
+            move = -1;
+        else if(buttons.pressed & Button::DPAD_RIGHT)
+            move = 1;
+    }
 
     if(blockFalling.id == -1) {
         blockFalling.id = nextBlock;
