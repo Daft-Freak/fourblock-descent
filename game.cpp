@@ -83,6 +83,8 @@ static struct {
 
 } blockFalling;
 
+static int nextBlock = 0;
+
 static int move = 0, rotate = 0;
 
 static int score = 0;
@@ -290,16 +292,6 @@ void init() {
 }
 
 // drawing
-static void drawTile(int x, int y, bool isFall) {
-    int tile = 0;
-    if(isFall)
-        tile = blockFalling.id;
-    else
-        tile = grid[x + y * gridWidth] - 1;
-
-    screen.sprite(tile, Point(x * blockSize, y * blockSize));
-}
-
 void render(uint32_t time) {
     screen.pen = Pen(0, 0, 0);
     screen.clear();
@@ -310,7 +302,7 @@ void render(uint32_t time) {
     for(int y = 0; y < gridHeight; y++) {
         for(int x = 0; x < gridWidth; x++) {
             if(grid[x + y * gridWidth] != 0) {
-                drawTile(x, y, false);
+                screen.sprite(grid[x + y * gridWidth] - 1, Point(x * blockSize, y * blockSize));
             }
         }
     }
@@ -324,10 +316,9 @@ void render(uint32_t time) {
                 auto rotPos = blockFalling.pos + rotateIt(Point(x, y), block.width, block.height, blockFalling.rot);
 
                 if(block.pattern[y][x])
-                    drawTile(rotPos.x, rotPos.y, true);
+                    screen.sprite(blockFalling.id, Point(rotPos.x * blockSize, rotPos.y * blockSize));
             }
         }
-
     }
 
     int x = gridWidth * blockSize + 8;
@@ -338,6 +329,18 @@ void render(uint32_t time) {
 
     screen.text("Lines:", font, Point(x, 20));
     screen.text(std::to_string(lines), font, Rect(x, 20, infoW, 8), true, TextAlign::top_right);
+
+    screen.text("Next:", font, Point(x, 32));
+
+    auto &block = blocks[nextBlock];
+    Point nextBlockPos(x + (infoW - block.width * blockSize) / 2, 40 + (24 - block.height * blockSize) / 2);
+
+    for(int y = 0; y < block.height; y++) {
+        for(int x = 0; x < block.width; x++) {
+            if(block.pattern[y][x])
+                screen.sprite(nextBlock, nextBlockPos + Point(x * blockSize, y * blockSize));
+        }
+    }
 }
 
 
@@ -360,7 +363,7 @@ void update(uint32_t time) {
         move = 1;
 
     if(blockFalling.id == -1) {
-        blockFalling.id = blit::random() % 7;
+        blockFalling.id = nextBlock;
         blockFalling.timer = 0;
         blockFalling.pos.y = 0;
         blockFalling.pos.x = 5 - blocks[blockFalling.id].width / 2;
@@ -370,6 +373,8 @@ void update(uint32_t time) {
         if(blockHitRot(0)) {
             blockFalling.id = -1;
         }
+
+        nextBlock = blit::random() % 7;
     } else {
         if(rotate != 0) {
             if(!blockHitRot(blockFalling.rot + rotate)) {
