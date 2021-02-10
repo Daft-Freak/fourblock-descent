@@ -1,4 +1,5 @@
 #include "game.hpp"
+#include "assets.hpp"
 
 using namespace blit;
 
@@ -7,7 +8,7 @@ static uint8_t grid[width * height]{0};
 
 struct Block {
     bool pattern[2][4];
-    Pen col;
+    int sprite = 0;
     int width = 0, height = 0;
 };
 
@@ -17,7 +18,7 @@ Block blocks[]{
         {
             {true, true, true, true}
         },
-        Pen{0, 0xFF, 0xFF},
+        4,
         4, 1
     },
     //J
@@ -26,7 +27,7 @@ Block blocks[]{
             {true},
             {true, true, true}
         },
-        Pen{0, 0, 0xFF},
+        5,
         3, 2
     },
     //L
@@ -35,7 +36,7 @@ Block blocks[]{
             {false, false, true},
             {true, true, true}
         },
-        Pen{0xFF, 0x77, 0},
+        1,
         3, 2
     },
     //Z
@@ -44,7 +45,7 @@ Block blocks[]{
             {true, true, false},
             {false, true, true}
         },
-        Pen{0xFF, 0, 0},
+        0,
         3, 2
     },
     //S
@@ -53,7 +54,7 @@ Block blocks[]{
             {false, true, true},
             {true, true, false}
         },
-        Pen{0, 0xFF, 0},
+        3,
         3, 2
     },
     //O
@@ -62,7 +63,7 @@ Block blocks[]{
             {true, true},
             {true, true}
         },
-        Pen{0xFF, 0xFF, 0},
+        2,
         2, 2
     },
     //T
@@ -71,7 +72,7 @@ Block blocks[]{
             {false, true},
             {true, true, true}
         },
-        Pen{0x77, 0, 0xFF},
+        6,
         3, 2
     }
 };
@@ -287,6 +288,8 @@ bool checkLost() {
 
 void init() {
     set_screen_mode(ScreenMode::hires);
+
+    screen.sprites = Surface::load(asset_tetris_sprites);
 }
 
 // drawing
@@ -297,23 +300,8 @@ static void drawTile(int x, int y, bool isFall) {
     else
         tile = grid[x + y * width] - 1;
 
-    screen.pen = blocks[tile].col;
-
-    int blockSize = 10;
-    screen.rectangle(Rect(x * blockSize, y * blockSize, blockSize, blockSize));
-
-    Pen col = blocks[tile].col;
-
-    col.r *= 0.7f;
-    col.g *= 0.7f;
-    col.b *= 0.7f;
-
-    screen.pen = col;
-
-    screen.h_span(Point( x      * blockSize    ,  y      * blockSize    ), blockSize);
-    screen.h_span(Point( x      * blockSize    , (y + 1) * blockSize - 1), blockSize);
-    screen.v_span(Point( x      * blockSize    ,  y      * blockSize    ), blockSize);
-    screen.v_span(Point((x + 1) * blockSize - 1,  y      * blockSize    ), blockSize);
+    int blockSize = 8;
+    screen.sprite(blocks[tile].sprite, Point(x * blockSize, y * blockSize));
 }
 
 void render(uint32_t time) {
@@ -321,7 +309,7 @@ void render(uint32_t time) {
     screen.clear();
 
     screen.pen = Pen(0, 0, 0);
-    screen.h_span(Point(0, 10 * height), 10 *width);
+    screen.h_span(Point(0, 8 * height), 8 * width);
 
     for(int y = 0; y < height; y++) {
         for(int x = 0; x < width; x++) {
