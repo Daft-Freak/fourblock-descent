@@ -144,7 +144,7 @@ void checkLine() {
         if(clearedLines == 0)
             return;
 
-        addedScore = clearedLines * 100;
+        addedScore = clearedLines * 10 + lines;
 
         //"tetris"
         if(clearedLines == 4)
