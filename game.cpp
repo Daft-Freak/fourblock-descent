@@ -93,6 +93,8 @@ static bool lastWasTetris = false;
 
 static bool gameEnded = false;
 
+static int rowFalling[gridHeight]{0};
+
 static Point rotateIt(Point pos, int w, int h, int rot) {
     int rX = pos.x;
     int rY = pos.y;
@@ -155,13 +157,15 @@ static void checkLine() {
 
         //move down
         for(int y = found; y >= 0; y--) {
-            for(int x = 0; x < gridWidth; x++) {
-                int newY = y + clearedLines;
-                if(newY > found)
-                    continue;
+            int newY = y + clearedLines;
+            if(newY > found)
+                continue;
 
+            for(int x = 0; x < gridWidth; x++) {
                 grid[x + newY * gridWidth] = grid[x + y * gridWidth];
             }
+
+            rowFalling[newY] += blockSize * clearedLines;
         }
 
         //fill top
@@ -301,7 +305,7 @@ void render(uint32_t time) {
     for(int y = 0; y < gridHeight; y++) {
         for(int x = 0; x < gridWidth; x++) {
             if(grid[x + y * gridWidth] != 0) {
-                screen.sprite(grid[x + y * gridWidth] - 1, Point(x * blockSize, y * blockSize));
+                screen.sprite(grid[x + y * gridWidth] - 1, Point(x * blockSize, y * blockSize - rowFalling[y]));
             }
         }
     }
@@ -351,6 +355,17 @@ void update(uint32_t time) {
         gameEnded = false;
         return;
     }
+
+    // scroll down blocks after clearing lines
+    bool isFalling = false;
+    for(int i = 0; i < gridHeight; i++){
+        if(rowFalling[i]) {
+            rowFalling[i]--;
+            isFalling = true;
+        }
+    }
+
+    if(isFalling) return;
 
     // input
     if(buttons.pressed & Button::A)
