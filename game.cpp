@@ -93,7 +93,7 @@ static int score = 0;
 static int lines = 0;
 static bool lastWasTetris = false;
 
-static bool gameEnded = false;
+static bool gameStarted = false, gameEnded = false;
 
 static int rowFalling[gridHeight]{0};
 
@@ -310,6 +310,32 @@ static bool checkLost() {
     return false;
 }
 
+static void reset() {
+    gameEnded = false;
+    gameStarted = true;
+    score = 0;
+    lines = 0;
+    lastWasTetris = false;
+
+    blockFalling.id = -1;
+
+    // clear grid and generate particles
+    for(int y = 0; y < gridHeight; y++) {
+        for(int x = 0; x < gridWidth; x++) {
+            if(grid[x + y * gridWidth] != 0) {
+                BlockParticle b;
+                b.pos = Vec2(x * blockSize, y * blockSize);
+                b.vel.x = (blit::random() / static_cast<float>(0xFFFFFFFF)) * 2.0f - 1.0f;
+                b.vel.y = (blit::random() / static_cast<float>(0xFFFFFFFF)) * -1.0f;
+                b.sprite = grid[x + y * gridWidth] - 1;
+                particles.push_back(b);
+
+                grid[x + y * gridWidth] = 0;
+            }
+        }
+    }
+}
+
 void init() {
     set_screen_mode(ScreenMode::lores);
 
@@ -370,15 +396,31 @@ void render(uint32_t time) {
                 screen.sprite(nextBlock, nextBlockPos + Point(x * blockSize, y * blockSize));
         }
     }
+
+    if(!gameStarted || gameEnded) {
+        screen.pen = Pen(0, 0, 0, 200);
+        screen.rectangle(Rect(Point(0, 0), screen.bounds));
+
+        screen.pen = Pen(0xFF, 0xFF, 0xFF);
+
+        if(!gameStarted)
+            screen.text("Press A!", font, Point(screen.bounds.w / 2, screen.bounds.h / 2), true, TextAlign::center_center);
+        else
+            screen.text("Game Over!\n\nPress A to restart.", font, Point(screen.bounds.w / 2, screen.bounds.h / 2), true, TextAlign::center_center);
+    }
 }
 
 
 void update(uint32_t time) {
-    if(gameEnded)
+    if(gameEnded || !gameStarted) {
+        if(buttons.released & Button::A)
+            reset();
+
         return;
+    }
 
     if(checkLost()) {
-        gameEnded = false;
+        gameEnded = true;
         return;
     }
 
