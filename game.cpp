@@ -86,6 +86,7 @@ static struct {
 static int move = 0, rotate = 0;
 
 static int score = 0;
+static int lines = 0;
 static bool lastWasTetris = false;
 
 static bool gameEnded = false;
@@ -114,7 +115,7 @@ void checkLine() {
     for(int l = 0; l < 4; l++) {
         int addedScore = 0;
 
-        int lines = 0;
+        int clearedLines = 0;
         int found = 0;
         bool stop = false;
 
@@ -137,25 +138,24 @@ void checkLine() {
                 break;
 
             if(found != 0)
-                lines++;
+                clearedLines++;
         }
 
-        if(lines == 0)
+        if(clearedLines == 0)
             return;
 
-
-        addedScore = lines * 100;
+        addedScore = clearedLines * 100;
 
         //"tetris"
-        if(lines == 4)
+        if(clearedLines == 4)
             addedScore *= lastWasTetris ? 3: 2;
 
-        lastWasTetris = lines == 4;
+        lastWasTetris = clearedLines == 4;
 
         //move down
         for(int y = found; y >= 0; y--) {
             for(int x = 0; x < gridWidth; x++) {
-                int newY = y + lines;
+                int newY = y + clearedLines;
                 if(newY > found)
                     continue;
 
@@ -164,15 +164,14 @@ void checkLine() {
         }
 
         //fill top
-        for(int i = 0; i < lines; i++) {
+        for(int i = 0; i < clearedLines; i++) {
             for(int x = 0; x < gridWidth; x++) {
                 grid[x + i * gridWidth] = 0;
             }
         }
 
         score += addedScore;
-
-        //$("#Score").html(score);
+        lines += clearedLines;
     }
 }
 
@@ -336,6 +335,9 @@ void render(uint32_t time) {
 
     screen.text("Score:", font, Point(x, 8));
     screen.text(std::to_string(score), font, Rect(x, 8, infoW, 8), true, TextAlign::top_right);
+
+    screen.text("Lines:", font, Point(x, 20));
+    screen.text(std::to_string(lines), font, Rect(x, 20, infoW, 8), true, TextAlign::top_right);
 }
 
 
