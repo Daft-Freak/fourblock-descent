@@ -1,3 +1,5 @@
+#include <list>
+
 #include "game.hpp"
 #include "assets.hpp"
 
@@ -95,6 +97,14 @@ static bool gameEnded = false;
 
 static int rowFalling[gridHeight]{0};
 
+struct BlockParticle {
+    Vec2 vel;
+    Vec2 pos;
+    int sprite = 0;
+};
+
+static std::list<BlockParticle> particles;
+
 static Point rotateIt(Point pos, int w, int h, int rot) {
     int rX = pos.x;
     int rY = pos.y;
@@ -154,6 +164,18 @@ static void checkLine() {
             addedScore *= lastWasTetris ? 3: 2;
 
         lastWasTetris = clearedLines == 4;
+
+        // particles!
+        for(int y = found; y > found - clearedLines; y--) {
+            for(int x = 0; x < gridWidth; x++) {
+                BlockParticle b;
+                b.pos = Vec2(x * blockSize, y * blockSize);
+                b.vel.x = (blit::random() / static_cast<float>(0xFFFFFFFF)) * 2.0f - 1.0f;
+                b.vel.y = (blit::random() / static_cast<float>(0xFFFFFFFF)) * -1.0f;
+                b.sprite = grid[x + y * gridWidth] - 1;
+                particles.push_back(b);
+            }
+        }
 
         //move down
         for(int y = found; y >= 0; y--) {
@@ -291,7 +313,7 @@ static bool checkLost() {
 void init() {
     set_screen_mode(ScreenMode::lores);
 
-    screen.sprites = Surface::load(asset_tetris_sprites);
+    screen.sprites = Surface::load(asset_tetris_sprites); 
 }
 
 // drawing
@@ -324,6 +346,10 @@ void render(uint32_t time) {
         }
     }
 
+    // particles
+    for(auto &p : particles)
+        screen.sprite(p.sprite, Point(p.pos));
+
     int x = gridWidth * blockSize + 8;
     int infoW = screen.bounds.w - (gridWidth * blockSize + 16);
 
@@ -354,6 +380,19 @@ void update(uint32_t time) {
     if(checkLost()) {
         gameEnded = false;
         return;
+    }
+
+    // update particles
+    for(auto it = particles.begin(); it != particles.end();) {
+        if(it->pos.y > screen.bounds.h) {
+            it = particles.erase(it);
+            continue;
+        }
+
+        it->pos += it->vel;
+        it->vel.y += 0.05f; // gravity
+
+        ++it;
     }
 
     // scroll down blocks after clearing lines
