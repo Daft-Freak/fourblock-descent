@@ -111,8 +111,7 @@ static Point rotateIt(Point pos, int w, int h, int rot) {
     return Point(rX, rY);
 }
 
-
-void checkLine() {
+static void checkLine() {
     //most lines possible at once = 4
     for(int l = 0; l < 4; l++) {
         int addedScore = 0;
@@ -177,7 +176,7 @@ void checkLine() {
     }
 }
 
-void placeBlock() {
+static void placeBlock() {
     auto &block = blocks[blockFalling.id];
 
     for(int y = 0; y < block.height; y++) {
@@ -191,7 +190,7 @@ void placeBlock() {
     }
 }
 
-bool blockHitX(int move) {
+static bool blockHitX(int move) {
     auto &block = blocks[blockFalling.id];
 
     for(int y = 0; y < block.height; y++) {
@@ -218,7 +217,7 @@ bool blockHitX(int move) {
     return false;
 }
 
-bool blockHit() {
+static bool blockHit() {
     auto &block = blocks[blockFalling.id];
 
     for(int y = 0; y < block.height; y++) {
@@ -243,7 +242,7 @@ bool blockHit() {
     return false;
 }
 
-bool blockHitRot(int newRot) {
+static bool blockHitRot(int newRot) {
     auto &block = blocks[blockFalling.id];
 
     for(int y = 0; y < block.height; y++) {
@@ -261,7 +260,7 @@ bool blockHitRot(int newRot) {
     return false;
 }
 
-void pushAwayFromSide() {
+static void pushAwayFromSide() {
     auto &block = blocks[blockFalling.id];
 
     for(int y = 0; y < block.height; y++) {
@@ -277,7 +276,7 @@ void pushAwayFromSide() {
     }
 }
 
-bool checkLost() {
+static bool checkLost() {
     for(int x = 0; x < gridWidth; x++) {
         if(grid[x] != 0)
             return true;
