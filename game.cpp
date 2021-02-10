@@ -77,7 +77,7 @@ Block blocks[]{
 };
 
 static struct {
-    int x = 0, y = 0;
+    Point pos;
     int id = -1;
     int rot = 0;
     int timer = 0;
@@ -91,19 +91,19 @@ bool lastWasTetris = false;
 
 bool gameEnded = false;
 
-static Point rotateIt(int x, int y, int w, int h, int rot) {
-    int rX = x;
-    int rY = y;
+static Point rotateIt(Point pos, int w, int h, int rot) {
+    int rX = pos.x;
+    int rY = pos.y;
 
     if(rot == 1) {
-        rX = (h - 1) - y;
-        rY =  x;
+        rX = (h - 1) - pos.y;
+        rY =  pos.x;
     } else if(rot == 2) {
-        rX = (w - 1) - x;
-        rY = (h - 1) - y;
+        rX = (w - 1) - pos.x;
+        rY = (h - 1) - pos.y;
     } else if(rot == 3) {
-        rX = y;
-        rY = (w - 1) - x;
+        rX = pos.y;
+        rY = (w - 1) - pos.x;
     }
 
     return Point(rX, rY);
@@ -182,10 +182,10 @@ void placeBlock() {
 
     for(int y = 0; y < block.height; y++) {
         for(int x = 0; x < block.width; x++) {
-            Point rotPos = rotateIt(x, y, block.width, block.height, blockFalling.rot);
+            Point rotPos = blockFalling.pos + rotateIt(Point(x, y), block.width, block.height, blockFalling.rot);
 
             if(block.pattern[y][x]) {
-                grid[(blockFalling.x + rotPos.x) + (blockFalling.y + rotPos.y) * width] = blockFalling.id + 1;
+                grid[rotPos.x + rotPos.y * width] = blockFalling.id + 1;
             }
         }
     }
@@ -196,19 +196,19 @@ bool blockHitX(int move) {
 
     for(int y = 0; y < block.height; y++) {
         for(int x = 0; x < block.width; x++) {
-            Point rotPos = rotateIt(x, y, block.width, block.height, blockFalling.rot);
+            Point rotPos = blockFalling.pos + rotateIt(Point(x, y), block.width, block.height, blockFalling.rot);
 
             if(block.pattern[y][x]) {
                 //side
-                if(blockFalling.x + rotPos.x + move >= width)
+                if(rotPos.x + move >= width)
                     return true;
 
-                if(blockFalling.x + rotPos.x + move < 0)
+                if(rotPos.x + move < 0)
                     return true;
 
                 //block block beside
-                if(blockFalling.x + rotPos.x + move < width) {
-                    if(grid[(blockFalling.x + rotPos.x + move) + (blockFalling.y + rotPos.y) * width] != 0)
+                if(rotPos.x + move < width) {
+                    if(grid[rotPos.x + move + rotPos.y * width] != 0)
                         return true;
                 }
             }
@@ -223,16 +223,16 @@ bool blockHit() {
 
     for(int y = 0; y < block.height; y++) {
         for(int x = 0; x < block.width; x++) {
-            Point rotPos = rotateIt(x, y, block.width, block.height, blockFalling.rot);
+            Point rotPos = blockFalling.pos + rotateIt(Point(x, y), block.width, block.height, blockFalling.rot);
 
             if(block.pattern[y][x] != 0) {
                 //bottom
-                if(blockFalling.y + rotPos.y >= height - 1)
+                if(rotPos.y >= height - 1)
                     return true;
 
                 //block under
-                if(blockFalling.y + rotPos.y + 1 < height) {
-                    if(grid[(blockFalling.x + rotPos.x) + (blockFalling.y + rotPos.y + 1) * width] != 0)
+                if(rotPos.y + 1 < height) {
+                    if(grid[rotPos.x + (rotPos.y + 1) * width] != 0)
                         return true;
                 }
 
@@ -248,11 +248,11 @@ bool blockHitRot(int newRot) {
 
     for(int y = 0; y < block.height; y++) {
         for(int x = 0; x < block.width; x++) {
-            Point rotPos = rotateIt(x, y, block.width, block.height, newRot);
+            Point rotPos = blockFalling.pos + rotateIt(Point(x, y), block.width, block.height, newRot);
 
             //inside block
             if(block.pattern[y][x]) {
-                if(grid[(blockFalling.x + rotPos.x) + (blockFalling.y + rotPos.x) * width] != 0)
+                if(grid[rotPos.x + rotPos.y * width] != 0)
                     return true;
             }
         }
@@ -266,12 +266,12 @@ void pushAwayFromSide() {
 
     for(int y = 0; y < block.height; y++) {
         for(int x = 0; x < block.width; x++) {
-            Point rotPos = rotateIt(x, y, block.width, block.height, blockFalling.rot);
+            Point rotPos = blockFalling.pos + rotateIt(Point(x, y), block.width, block.height, blockFalling.rot);
 
             //inside wall
             if(block.pattern[y][x] != 0) {
-                if(blockFalling.x + rotPos.x >= width)
-                    blockFalling.x--;
+                if(rotPos.x >= width)
+                    blockFalling.pos.x--;
             }
         }
     }
@@ -337,13 +337,10 @@ void render(uint32_t time) {
 
         for(int y = 0; y < 2; y++) {
             for(int x = 0; x < 4; x++) {
-                auto rotPos = rotateIt(x, y, block.width, block.height, blockFalling.rot);
-
-                int rX = rotPos.x;
-                int rY = rotPos.y;
+                auto rotPos = blockFalling.pos + rotateIt(Point(x, y), block.width, block.height, blockFalling.rot);
 
                 if(block.pattern[y][x])
-                    drawTile(blockFalling.x + rX, blockFalling.y + rY, true);
+                    drawTile(rotPos.x, rotPos.y, true);
             }
         }
 
@@ -372,8 +369,8 @@ void update(uint32_t time) {
     if(blockFalling.id == -1) {
         blockFalling.id = blit::random() % 7;
         blockFalling.timer = 0;
-        blockFalling.y = 0;
-        blockFalling.x = 5 - blocks[blockFalling.id].width / 2;
+        blockFalling.pos.y = 0;
+        blockFalling.pos.x = 5 - blocks[blockFalling.id].width / 2;
         blockFalling.rot = 0;
 
         //check if it fits
@@ -395,7 +392,7 @@ void update(uint32_t time) {
 
         if(move != 0) {
             if(!blockHitX(move)) {
-                blockFalling.x += move;
+                blockFalling.pos.x += move;
                 move = 0;
             }
         }
@@ -408,7 +405,7 @@ void update(uint32_t time) {
 
                 blockFalling.id = -1;
             } else {
-                blockFalling.y++;
+                blockFalling.pos.y++;
                 blockFalling.timer = 0;
             }
         }
