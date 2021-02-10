@@ -8,7 +8,7 @@ static uint8_t grid[gridWidth * gridHeight]{0};
 
 static const int blockSize = 8;
 
-static const int fallTime = 20;
+static const int fallTime = 30;
 
 struct Block {
     bool pattern[2][4];
