@@ -3,15 +3,19 @@
 
 using namespace blit;
 
-static const int width = 10, height = 15;
-static uint8_t grid[width * height]{0};
+static const int gridWidth = 10, gridHeight = 15;
+static uint8_t grid[gridWidth * gridHeight]{0};
+
+static const int blockSize = 8;
+
+static const int fallTime = 20;
 
 struct Block {
     bool pattern[2][4];
     int width = 0, height = 0;
 };
 
-Block blocks[]{
+static Block blocks[]{
     //Z
     {
         {
@@ -79,10 +83,10 @@ static struct {
 
 static int move = 0, rotate = 0;
 
-int score = 0;
-bool lastWasTetris = false;
+static int score = 0;
+static bool lastWasTetris = false;
 
-bool gameEnded = false;
+static bool gameEnded = false;
 
 static Point rotateIt(Point pos, int w, int h, int rot) {
     int rX = pos.x;
@@ -112,10 +116,10 @@ void checkLine() {
         int found = 0;
         bool stop = false;
 
-        for(int y = height - 1; y >= 0; y--) {
+        for(int y = gridHeight - 1; y >= 0; y--) {
             int isLine = true;
-            for(int x = 0; x < width; x++) {
-                if(grid[x + y * width] == 0) {
+            for(int x = 0; x < gridWidth; x++) {
+                if(grid[x + y * gridWidth] == 0) {
                     isLine = false;
                     break;
                 }
@@ -148,19 +152,19 @@ void checkLine() {
 
         //move down
         for(int y = found; y >= 0; y--) {
-            for(int x = 0; x < width; x++) {
+            for(int x = 0; x < gridWidth; x++) {
                 int newY = y + lines;
                 if(newY > found)
                     continue;
 
-                grid[x + newY * width] = grid[x + y * width];
+                grid[x + newY * gridWidth] = grid[x + y * gridWidth];
             }
         }
 
         //fill top
         for(int i = 0; i < lines; i++) {
-            for(int x = 0; x < width; x++) {
-                grid[x + i * width] = 0;
+            for(int x = 0; x < gridWidth; x++) {
+                grid[x + i * gridWidth] = 0;
             }
         }
 
@@ -178,7 +182,7 @@ void placeBlock() {
             Point rotPos = blockFalling.pos + rotateIt(Point(x, y), block.width, block.height, blockFalling.rot);
 
             if(block.pattern[y][x]) {
-                grid[rotPos.x + rotPos.y * width] = blockFalling.id + 1;
+                grid[rotPos.x + rotPos.y * gridWidth] = blockFalling.id + 1;
             }
         }
     }
@@ -193,15 +197,15 @@ bool blockHitX(int move) {
 
             if(block.pattern[y][x]) {
                 //side
-                if(rotPos.x + move >= width)
+                if(rotPos.x + move >= gridWidth)
                     return true;
 
                 if(rotPos.x + move < 0)
                     return true;
 
                 //block block beside
-                if(rotPos.x + move < width) {
-                    if(grid[rotPos.x + move + rotPos.y * width] != 0)
+                if(rotPos.x + move < gridWidth) {
+                    if(grid[rotPos.x + move + rotPos.y * gridWidth] != 0)
                         return true;
                 }
             }
@@ -220,12 +224,12 @@ bool blockHit() {
 
             if(block.pattern[y][x] != 0) {
                 //bottom
-                if(rotPos.y >= height - 1)
+                if(rotPos.y >= gridHeight - 1)
                     return true;
 
                 //block under
-                if(rotPos.y + 1 < height) {
-                    if(grid[rotPos.x + (rotPos.y + 1) * width] != 0)
+                if(rotPos.y + 1 < gridHeight) {
+                    if(grid[rotPos.x + (rotPos.y + 1) * gridWidth] != 0)
                         return true;
                 }
 
@@ -245,7 +249,7 @@ bool blockHitRot(int newRot) {
 
             //inside block
             if(block.pattern[y][x]) {
-                if(grid[rotPos.x + rotPos.y * width] != 0)
+                if(grid[rotPos.x + rotPos.y * gridWidth] != 0)
                     return true;
             }
         }
@@ -263,7 +267,7 @@ void pushAwayFromSide() {
 
             //inside wall
             if(block.pattern[y][x] != 0) {
-                if(rotPos.x >= width)
+                if(rotPos.x >= gridWidth)
                     blockFalling.pos.x--;
             }
         }
@@ -271,7 +275,7 @@ void pushAwayFromSide() {
 }
 
 bool checkLost() {
-    for(int x = 0; x < width; x++) {
+    for(int x = 0; x < gridWidth; x++) {
         if(grid[x] != 0)
             return true;
     }
@@ -290,9 +294,8 @@ static void drawTile(int x, int y, bool isFall) {
     if(isFall)
         tile = blockFalling.id;
     else
-        tile = grid[x + y * width] - 1;
+        tile = grid[x + y * gridWidth] - 1;
 
-    int blockSize = 8;
     screen.sprite(tile, Point(x * blockSize, y * blockSize));
 }
 
@@ -301,11 +304,11 @@ void render(uint32_t time) {
     screen.clear();
 
     screen.pen = Pen(0xFF,0xFF,0xFF);
-    screen.rectangle(Rect(0, 0, width * 8, height * 8));
+    screen.rectangle(Rect(0, 0, gridWidth * blockSize, gridHeight * blockSize));
 
-    for(int y = 0; y < height; y++) {
-        for(int x = 0; x < width; x++) {
-            if(grid[x + y * width] != 0) {
+    for(int y = 0; y < gridHeight; y++) {
+        for(int x = 0; x < gridWidth; x++) {
+            if(grid[x + y * gridWidth] != 0) {
                 drawTile(x, y, false);
             }
         }
@@ -377,7 +380,7 @@ void update(uint32_t time) {
             }
         }
 
-        if(blockFalling.timer >= 20) {
+        if(blockFalling.timer >= fallTime) {
             if(blockHit()) {
                 placeBlock();
 
