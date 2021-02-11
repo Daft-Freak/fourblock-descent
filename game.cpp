@@ -303,6 +303,8 @@ static void pushAwayFromSide() {
             if(block.pattern[y][x] != 0) {
                 if(rotPos.x >= gridWidth)
                     blockFalling.pos.x--;
+                else if(rotPos.x < 0)
+                    blockFalling.pos.x++;
             }
         }
     }
