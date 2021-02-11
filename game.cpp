@@ -577,11 +577,6 @@ void update(uint32_t time) {
         blockFalling.pos.x = 5 - blocks[blockFalling.id].width / 2;
         blockFalling.rot = 0;
 
-        //check if it fits
-        if(blockHitRot(0)) {
-            blockFalling.id = -1;
-        }
-
         nextBlock = blit::random() % 7;
     } else {
         if(rotate != 0) {
