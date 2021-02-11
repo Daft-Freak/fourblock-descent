@@ -55,9 +55,10 @@ static Block blocks[]{
     //I
     {
         {
+            {false, false, false, false},
             {true, true, true, true}
         },
-        4, 1
+        4, 2
     },
     //J
     {
@@ -106,21 +107,26 @@ struct BlockParticle {
 static std::list<BlockParticle> particles;
 
 static Point rotateIt(Point pos, int w, int h, int rot) {
-    int rX = pos.x;
-    int rY = pos.y;
+    // doubling everthing for precision
+    int center = (std::max(w, h) - 1);
+
+    int rX = pos.x * 2 - center;
+    int rY = pos.y * 2 - center;
 
     if(rot == 1) {
-        rX = (h - 1) - pos.y;
-        rY =  pos.x;
+        int tmp = rX;
+        rX = -rY;
+        rY = tmp;
     } else if(rot == 2) {
-        rX = (w - 1) - pos.x;
-        rY = (h - 1) - pos.y;
+        rX = -rX;
+        rY = -rY;
     } else if(rot == 3) {
-        rX = pos.y;
-        rY = (w - 1) - pos.x;
+        int tmp = rX;
+        rX = rY;
+        rY = -tmp;
     }
 
-    return Point(rX, rY);
+    return Point((rX + center) / 2, (rY + center) / 2);
 }
 
 static void checkLine() {
