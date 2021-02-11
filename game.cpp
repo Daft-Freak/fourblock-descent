@@ -418,6 +418,29 @@ void render(uint32_t time) {
 
 static int autoDelay = 0;
 
+// brute force everything!
+static Rect blockBounds(int blockId, int rot) {
+    auto &block = blocks[blockId];
+
+    int minX = 5, maxX = -1;
+    int minY = 5, maxY = -1;
+
+    for(int y = 0; y < block.height; y++) {
+        for(int x = 0; x < block.width; x++) {
+            if(!block.pattern[y][x]) continue;
+
+            Point rotPos = rotateIt(Point(x, y), block.width, block.height, rot);
+
+            minX = std::min(minX, rotPos.x);
+            minY = std::min(minY, rotPos.y);
+            maxX = std::max(maxX, rotPos.x);
+            maxY = std::max(maxY, rotPos.y);
+        }
+    }
+
+    return Rect(minX, minY, maxX - minX, maxY - minY);
+}
+
 static void autoPlay() {
 
     if(autoDelay) {
@@ -437,9 +460,9 @@ static void autoPlay() {
 
     auto savedPos = blockFalling.pos;
 
-    for(int rot = 0; rot < 3; rot++) {
+    for(int rot = 0; rot < 4; rot++) {
         for(int x = 0; x < gridWidth; x++) {
-            for(int y = 0; y < gridHeight; y++) {
+            for(int y = gridHeight - 1; y >= 0; y--) {
 
                 blockFalling.pos = Point(x, y);
 
@@ -453,10 +476,28 @@ static void autoPlay() {
                 if(x + w > gridWidth || y + h > gridHeight)
                     continue;
 
-                if(!blockHitRot(rot) && y + h > maxY) {
+                if(!blockHitRot(rot)) {
+
+                    auto bounds = blockBounds(blockFalling.id, rot);
+
+                    // check if lower (including offset from rotation)
+                    if(y + bounds.y <= maxY)
+                        continue;
+
+                    // check if possible to drop here
+                    bool canDrop = true;
+                    while(canDrop && blockFalling.pos.y > 0) {
+                        blockFalling.pos.y--;
+                        canDrop = !blockHitRot(rot);
+                    }
+
+                    if(!canDrop)
+                        continue;
+
                     optX = x;
-                    maxY = y + h;
+                    maxY = y + bounds.y;
                     optRot = rot;
+                    break;
                 }
             }
         }
