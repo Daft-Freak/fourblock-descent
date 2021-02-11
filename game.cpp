@@ -422,8 +422,8 @@ static int autoDelay = 0;
 static Rect blockBounds(int blockId, int rot) {
     auto &block = blocks[blockId];
 
-    int minX = 5, maxX = -1;
-    int minY = 5, maxY = -1;
+    int32_t minX = 5, maxX = -1;
+    int32_t minY = 5, maxY = -1;
 
     for(int y = 0; y < block.height; y++) {
         for(int x = 0; x < block.width; x++) {
