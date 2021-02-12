@@ -600,7 +600,9 @@ void update(uint32_t time) {
             }
         }
 
-        if(blockFalling.timer >= fallTime) {
+        int time = buttons & Button::DPAD_DOWN ? fallTime / 4 : fallTime;
+
+        if(blockFalling.timer >= time) {
             if(blockHit()) {
                 placeBlock();
 
