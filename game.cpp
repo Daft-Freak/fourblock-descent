@@ -13,6 +13,7 @@ static uint8_t grid[gridWidth * gridHeight]{0};
 static const int blockSize = 8;
 
 static const int fallTime = 30;
+static const int rowFallScale = 2; // how many ticks it takes for a row to fall one pixel
 
 struct Block {
     bool pattern[2][4];
@@ -193,7 +194,7 @@ static void checkLine() {
                 grid[x + newY * gridWidth] = grid[x + y * gridWidth];
             }
 
-            rowFalling[newY] += blockSize * clearedLines;
+            rowFalling[newY] += blockSize * clearedLines * rowFallScale;
         }
 
         //fill top
@@ -361,7 +362,7 @@ void render(uint32_t time) {
     for(int y = 0; y < gridHeight; y++) {
         for(int x = 0; x < gridWidth; x++) {
             if(grid[x + y * gridWidth] != 0) {
-                screen.sprite(grid[x + y * gridWidth] - 1, Point(x * blockSize, y * blockSize - rowFalling[y]));
+                screen.sprite(grid[x + y * gridWidth] - 1, Point(x * blockSize, y * blockSize - rowFalling[y] / rowFallScale));
             }
         }
     }
