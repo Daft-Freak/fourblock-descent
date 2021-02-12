@@ -107,6 +107,14 @@ struct BlockParticle {
 
 static std::list<BlockParticle> particles;
 
+// sound
+static const int noiseChannel = 0;
+
+void playDropSound(int vol = 0x3FFF) {
+    channels[noiseChannel].volume = vol;
+    channels[noiseChannel].trigger_attack();
+}
+
 static Point rotateIt(Point pos, int w, int h, int rot) {
     // doubling everthing for precision
     int center = (std::max(w, h) - 1);
@@ -349,6 +357,12 @@ void init() {
     set_screen_mode(ScreenMode::lores);
 
     screen.sprites = Surface::load(asset_tetris_sprites); 
+
+    channels[noiseChannel].waveforms = Waveform::NOISE;
+    channels[noiseChannel].frequency = 2000;
+    channels[noiseChannel].attack_ms = 5;
+    channels[noiseChannel].decay_ms = 150;
+    channels[noiseChannel].sustain = 0;
 }
 
 // drawing
@@ -555,6 +569,11 @@ void update(uint32_t time) {
         if(rowFalling[i]) {
             rowFalling[i]--;
             isFalling = true;
+
+            // play sound whenever a row stops falling
+            // this should check if the row above is non-empty...
+            if(!rowFalling[i])
+                playDropSound(0x7FFF);
         }
     }
 
@@ -605,6 +624,7 @@ void update(uint32_t time) {
 
         if(blockFalling.timer >= time) {
             if(blockHit()) {
+                playDropSound();
                 placeBlock();
 
                 checkLine();
