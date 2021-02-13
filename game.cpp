@@ -2,6 +2,7 @@
 
 #include "game.hpp"
 #include "assets.hpp"
+#include "leaderboard.hpp"
 
 using namespace blit;
 
@@ -106,6 +107,8 @@ struct BlockParticle {
 };
 
 static std::list<BlockParticle> particles;
+
+Leaderboard leaderboard;
 
 // sound
 static const int noiseChannel = 0;
@@ -356,6 +359,11 @@ static void reset() {
 void init() {
     set_screen_mode(ScreenMode::lores);
 
+    leaderboard.load();
+
+    int padding = 2;
+    leaderboard.setDisplayRect(Rect(screen.bounds.w / 2 + padding, padding, screen.bounds.w / 2 - padding * 2, screen.bounds.h - padding * 2));
+
     screen.sprites = Surface::load(asset_tetris_sprites); 
 
     channels[noiseChannel].waveforms = Waveform::NOISE;
@@ -399,37 +407,41 @@ void render(uint32_t time) {
     for(auto &p : particles)
         screen.sprite(p.sprite, Point(p.pos));
 
-    int x = gridWidth * blockSize + 8;
-    int infoW = screen.bounds.w - (gridWidth * blockSize + 16);
+    // game info
+    if(gameStarted && !gameEnded) {
+        int x = gridWidth * blockSize + 8;
+        int infoW = screen.bounds.w - (gridWidth * blockSize + 16);
 
-    screen.text("Score:", font, Point(x, 8));
-    screen.text(std::to_string(score), font, Rect(x, 8, infoW, 8), true, TextAlign::top_right);
+        screen.text("Score:", font, Point(x, 8));
+        screen.text(std::to_string(score), font, Rect(x, 8, infoW, 8), true, TextAlign::top_right);
 
-    screen.text("Lines:", font, Point(x, 20));
-    screen.text(std::to_string(lines), font, Rect(x, 20, infoW, 8), true, TextAlign::top_right);
+        screen.text("Lines:", font, Point(x, 20));
+        screen.text(std::to_string(lines), font, Rect(x, 20, infoW, 8), true, TextAlign::top_right);
 
-    screen.text("Next:", font, Point(x, 32));
+        screen.text("Next:", font, Point(x, 32));
 
-    auto &block = blocks[nextBlock];
-    Point nextBlockPos(x + (infoW - block.width * blockSize) / 2, 40 + (24 - block.height * blockSize) / 2);
+        auto &block = blocks[nextBlock];
+        Point nextBlockPos(x + (infoW - block.width * blockSize) / 2, 40 + (24 - block.height * blockSize) / 2);
 
-    for(int y = 0; y < block.height; y++) {
-        for(int x = 0; x < block.width; x++) {
-            if(block.pattern[y][x])
-                screen.sprite(nextBlock, nextBlockPos + Point(x * blockSize, y * blockSize));
+        for(int y = 0; y < block.height; y++) {
+            for(int x = 0; x < block.width; x++) {
+                if(block.pattern[y][x])
+                    screen.sprite(nextBlock, nextBlockPos + Point(x * blockSize, y * blockSize));
+            }
         }
-    }
-
-    if(!gameStarted || gameEnded) {
+    } else {
+        Rect rightRect(0, 0, screen.bounds.w / 2, screen.bounds.h);
         screen.pen = Pen(0, 0, 0, 200);
-        screen.rectangle(Rect(Point(0, 0), screen.bounds));
+        screen.rectangle(rightRect);
 
         screen.pen = Pen(0xFF, 0xFF, 0xFF);
 
         if(!gameStarted)
-            screen.text("Press A!", font, Point(screen.bounds.w / 2, screen.bounds.h / 2), true, TextAlign::center_center);
+            screen.text("Press A!", font, rightRect, true, TextAlign::center_center);
         else
-            screen.text("Game Over!\n\nPress A to restart.", font, Point(screen.bounds.w / 2, screen.bounds.h / 2), true, TextAlign::center_center);
+            screen.text("Game Over!\n\nPress A to\nrestart.", font, rightRect, true, TextAlign::center_center);
+
+        leaderboard.render();
     }
 }
 
@@ -540,9 +552,13 @@ void update(uint32_t time) {
     }
 
     if(checkLost()) {
-        if(gameStarted)
+        if(gameStarted){
             gameEnded = true;
-        else {
+
+            // TODO: name entry
+            if(leaderboard.canAddScore(score))
+                leaderboard.addScore("You", score);
+        } else {
             // reset auto-play
             reset();
             gameStarted = false;
