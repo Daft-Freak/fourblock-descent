@@ -108,7 +108,7 @@ struct BlockParticle {
 
 static std::list<BlockParticle> particles;
 
-Leaderboard leaderboard;
+static Leaderboard leaderboard(font);
 
 // sound
 static const int noiseChannel = 0;
