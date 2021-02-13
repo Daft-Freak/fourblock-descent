@@ -618,10 +618,9 @@ void update(uint32_t time) {
         nextBlock = blit::random() % 7;
     } else {
         if(rotate != 0) {
-            if(!blockHitRot(blockFalling.rot + rotate)) {
-                blockFalling.rot++;
-
-                blockFalling.rot %= 4;
+            int newRot = (blockFalling.rot + rotate) % 4;
+            if(!blockHitRot(newRot)) {
+                blockFalling.rot = newRot;
 
                 pushAwayFromSide();
             }
