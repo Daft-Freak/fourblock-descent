@@ -3,6 +3,7 @@
 #include "game.hpp"
 #include "assets.hpp"
 #include "leaderboard.hpp"
+#include "name-entry.hpp"
 
 using namespace blit;
 
@@ -109,6 +110,8 @@ struct BlockParticle {
 static std::list<BlockParticle> particles;
 
 static Leaderboard leaderboard(font);
+static NameEntry nameEntry(font);
+static bool needNameEntry = false;
 
 // sound
 static const int noiseChannel = 0;
@@ -363,8 +366,9 @@ void init() {
 
     int padding = 2;
     leaderboard.setDisplayRect(Rect(screen.bounds.w / 2 + padding, padding, screen.bounds.w / 2 - padding * 2, screen.bounds.h - padding * 2));
+    nameEntry.setDisplayRect(Rect(0, 0, screen.bounds.w / 2, screen.bounds.h));
 
-    screen.sprites = Surface::load(asset_tetris_sprites); 
+    screen.sprites = Surface::load(asset_tetris_sprites);
 
     channels[noiseChannel].waveforms = Waveform::NOISE;
     channels[noiseChannel].frequency = 2000;
@@ -436,7 +440,9 @@ void render(uint32_t time) {
 
         screen.pen = Pen(0xFF, 0xFF, 0xFF);
 
-        if(!gameStarted)
+        if(needNameEntry)
+            nameEntry.render();
+        else if(!gameStarted)
             screen.text("Press A!", font, rightRect, true, TextAlign::center_center);
         else
             screen.text("Game Over!\n\nPress A to\nrestart.", font, rightRect, true, TextAlign::center_center);
@@ -544,8 +550,19 @@ static void autoPlay() {
 
 void update(uint32_t time) {
     if(gameEnded || !gameStarted) {
-        if(buttons.released & Button::A)
-            reset();
+        // no game in progress, we've either lost or not started yet
+
+        if(needNameEntry)
+            nameEntry.update();
+
+        if(buttons.released & Button::A) {
+            if(needNameEntry) {
+                // got name, update leaderboard
+                needNameEntry = false;
+                leaderboard.addScore(nameEntry.getName().c_str(), score);
+            } else
+                reset(); // start new game;
+        }
 
         if(gameEnded)
             return;
@@ -555,9 +572,9 @@ void update(uint32_t time) {
         if(gameStarted){
             gameEnded = true;
 
-            // TODO: name entry
+            // get name if the score can be added
             if(leaderboard.canAddScore(score))
-                leaderboard.addScore("You", score);
+                needNameEntry = true;
         } else {
             // reset auto-play
             reset();
