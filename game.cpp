@@ -436,7 +436,7 @@ void render(uint32_t time) {
     } else {
         Rect rightRect(0, 0, screen.bounds.w / 2, screen.bounds.h);
         screen.pen = Pen(0, 0, 0, 200);
-        screen.rectangle(rightRect);
+        screen.rectangle(Rect(Point(0, 0), screen.bounds));
 
         screen.pen = Pen(0xFF, 0xFF, 0xFF);
 
