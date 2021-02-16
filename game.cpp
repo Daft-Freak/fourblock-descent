@@ -244,6 +244,9 @@ static bool blockHitX(int move) {
         for(int x = 0; x < block.width; x++) {
             Point rotPos = blockFalling.pos + rotateIt(Point(x, y), block.width, block.height, blockFalling.rot);
 
+            if(rotPos.y < 0)
+                continue;
+
             if(block.pattern[y][x]) {
                 //side
                 if(rotPos.x + move >= gridWidth)
@@ -271,6 +274,9 @@ static bool blockHit() {
         for(int x = 0; x < block.width; x++) {
             Point rotPos = blockFalling.pos + rotateIt(Point(x, y), block.width, block.height, blockFalling.rot);
 
+            if(rotPos.y < 0)
+                continue;
+
             if(block.pattern[y][x] != 0) {
                 //bottom
                 if(rotPos.y >= gridHeight - 1)
@@ -296,6 +302,9 @@ static bool blockHitRot(int newRot) {
         for(int x = 0; x < block.width; x++) {
             Point rotPos = blockFalling.pos + rotateIt(Point(x, y), block.width, block.height, newRot);
 
+            if(rotPos.y < 0)
+                continue;
+
             //inside block
             if(block.pattern[y][x]) {
                 if(grid[rotPos.x + rotPos.y * gridWidth] != 0)
@@ -313,6 +322,9 @@ static void pushAwayFromSide() {
     for(int y = 0; y < block.height; y++) {
         for(int x = 0; x < block.width; x++) {
             Point rotPos = blockFalling.pos + rotateIt(Point(x, y), block.width, block.height, blockFalling.rot);
+
+            if(rotPos.y < 0)
+                continue;
 
             //inside wall
             if(block.pattern[y][x] != 0) {
@@ -628,7 +640,7 @@ void update(uint32_t time) {
     if(blockFalling.id == -1) {
         blockFalling.id = nextBlock;
         blockFalling.timer = 0;
-        blockFalling.pos.y = 0;
+        blockFalling.pos.y = -2;
         blockFalling.pos.x = 5 - blocks[blockFalling.id].width / 2;
         blockFalling.rot = 0;
 
