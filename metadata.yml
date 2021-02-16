@@ -5,5 +5,6 @@ splash:
   file: assets/splash.png
 icon:
   file: assets/icon.png
-version: v0.2.1
+version: v0.3.0
 category: game
+url: https://github.com/Daft-Freak/fourblock-descent
