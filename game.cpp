@@ -110,6 +110,7 @@ struct BlockParticle {
 static std::list<BlockParticle> particles;
 
 static Leaderboard leaderboard(font);
+static bool showLeaderboard = true;
 static NameEntry nameEntry(font);
 static bool needNameEntry = false;
 
@@ -377,7 +378,17 @@ void init() {
     leaderboard.load();
 
     int padding = 2;
-    leaderboard.setDisplayRect(Rect(screen.bounds.w / 2 + padding, padding, screen.bounds.w / 2 - padding * 2, screen.bounds.h - padding * 2));
+    Rect leaderboardRect;
+
+    // show on the left if wide enough, otherwise center and toggle visible
+    if(screen.bounds.w >= 160)
+        leaderboardRect = {screen.bounds.w / 2 + padding, padding, screen.bounds.w / 2 - padding * 2, screen.bounds.h - padding * 2};
+    else {
+        leaderboardRect = {(screen.bounds.w / 2 - 40) + padding, padding, 80 - padding * 2, screen.bounds.h - (padding * 2 + 10)};
+        showLeaderboard = false;
+    }
+
+    leaderboard.setDisplayRect(leaderboardRect);
     nameEntry.setDisplayRect(Rect(0, 0, gridWidth * blockSize, screen.bounds.h));
 
     screen.sprites = Surface::load(asset_tetris_sprites);
@@ -460,14 +471,22 @@ void render(uint32_t time) {
 
         screen.pen = Pen(0xFF, 0xFF, 0xFF);
 
-        if(needNameEntry)
-            nameEntry.render();
-        else if(!gameStarted)
-            screen.text("Press A!", font, leftRect, true, TextAlign::center_center);
-        else
-            screen.text("Game Over!\n\nPress A to\nrestart.", font, leftRect, true, TextAlign::center_center);
+        bool narrow = screen.bounds.w < 160;
 
-        leaderboard.render();
+        if(!narrow || !showLeaderboard) {
+            if(needNameEntry)
+                nameEntry.render();
+            else if(!gameStarted)
+                screen.text("Press A!", font, leftRect, true, TextAlign::center_center);
+            else
+                screen.text("Game Over!\n\nPress A to\nrestart.", font, leftRect, true, TextAlign::center_center);
+        }
+
+        if(showLeaderboard)
+            leaderboard.render();
+
+        if(narrow)
+            screen.text("X: Toggle Scores", font, Point(screen.bounds.w - 4, screen.bounds.h - 4), true, TextAlign::bottom_right);
     }
 }
 
@@ -572,7 +591,9 @@ void update(uint32_t time) {
     if(gameEnded || !gameStarted) {
         // no game in progress, we've either lost or not started yet
 
-        if(needNameEntry)
+        bool narrow = screen.bounds.w < 160;
+
+        if(needNameEntry && (!showLeaderboard || !narrow))
             nameEntry.update();
 
         if(buttons.released & Button::A) {
@@ -584,6 +605,10 @@ void update(uint32_t time) {
                 reset(); // start new game;
         }
 
+        // narrow screen leaderboard toggle
+        if((buttons.released & Button::X) && narrow)
+            showLeaderboard = !showLeaderboard;
+
         if(gameEnded)
             return;
     }
@@ -593,8 +618,10 @@ void update(uint32_t time) {
             gameEnded = true;
 
             // get name if the score can be added
-            if(leaderboard.canAddScore(score))
+            if(leaderboard.canAddScore(score)) {
                 needNameEntry = true;
+                showLeaderboard = false;
+            }
         } else {
             // reset auto-play
             reset();
