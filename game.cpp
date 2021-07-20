@@ -230,7 +230,7 @@ static void placeBlock() {
         for(int x = 0; x < block.width; x++) {
             Point rotPos = blockFalling.pos + rotateIt(Point(x, y), block.width, block.height, blockFalling.rot);
 
-            if(block.pattern[y][x]) {
+            if(block.pattern[y][x] && rotPos.y >= 0) {
                 grid[rotPos.x + rotPos.y * gridWidth] = blockFalling.id + 1;
             }
         }
