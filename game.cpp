@@ -378,7 +378,7 @@ void init() {
 
     int padding = 2;
     leaderboard.setDisplayRect(Rect(screen.bounds.w / 2 + padding, padding, screen.bounds.w / 2 - padding * 2, screen.bounds.h - padding * 2));
-    nameEntry.setDisplayRect(Rect(0, 0, screen.bounds.w / 2, screen.bounds.h));
+    nameEntry.setDisplayRect(Rect(0, 0, gridWidth * blockSize, screen.bounds.h));
 
     screen.sprites = Surface::load(asset_tetris_sprites);
 
@@ -446,7 +446,7 @@ void render(uint32_t time) {
             }
         }
     } else {
-        Rect rightRect(0, 0, screen.bounds.w / 2, screen.bounds.h);
+        Rect leftRect(0, 0, gridWidth * blockSize, screen.bounds.h);
         screen.pen = Pen(0, 0, 0, 200);
         screen.rectangle(Rect(Point(0, 0), screen.bounds));
 
@@ -455,9 +455,9 @@ void render(uint32_t time) {
         if(needNameEntry)
             nameEntry.render();
         else if(!gameStarted)
-            screen.text("Press A!", font, rightRect, true, TextAlign::center_center);
+            screen.text("Press A!", font, leftRect, true, TextAlign::center_center);
         else
-            screen.text("Game Over!\n\nPress A to\nrestart.", font, rightRect, true, TextAlign::center_center);
+            screen.text("Game Over!\n\nPress A to\nrestart.", font, leftRect, true, TextAlign::center_center);
 
         leaderboard.render();
     }
