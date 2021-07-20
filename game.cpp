@@ -428,16 +428,24 @@ void render(uint32_t time) {
         int x = gridWidth * blockSize + 8;
         int infoW = screen.bounds.w - (gridWidth * blockSize + 16);
 
-        screen.text("Score:", font, Point(x, 8));
-        screen.text(std::to_string(score), font, Rect(x, 8, infoW, 8), true, TextAlign::top_right);
+        int y = 8;
+        bool narrow = infoW < 64;
 
-        screen.text("Lines:", font, Point(x, 20));
-        screen.text(std::to_string(lines), font, Rect(x, 20, infoW, 8), true, TextAlign::top_right);
+        screen.text("Score:", font, Point(x, y));
+        if(narrow) y += 12;
+        screen.text(std::to_string(score), font, Rect(x, y, infoW, 8), true, TextAlign::top_right);
 
-        screen.text("Next:", font, Point(x, 32));
+        y += 12;
+        screen.text("Lines:", font, Point(x, y));
+        if(narrow) y += 12;
+        screen.text(std::to_string(lines), font, Rect(x, y, infoW, 8), true, TextAlign::top_right);
 
+        y += 12;
+        screen.text("Next:", font, Point(x, y));
+
+        y += 8;
         auto &block = blocks[nextBlock];
-        Point nextBlockPos(x + (infoW - block.width * blockSize) / 2, 40 + (24 - block.height * blockSize) / 2);
+        Point nextBlockPos(x + (infoW - block.width * blockSize) / 2, y + (24 - block.height * blockSize) / 2);
 
         for(int y = 0; y < block.height; y++) {
             for(int x = 0; x < block.width; x++) {
