@@ -1,6 +1,8 @@
 # Basic parameters; check that these match your project / environment
 cmake_minimum_required(VERSION 3.9)
 
+include(${32BLIT_DIR}/32blit-pico/sdk_import.cmake OPTIONAL)
+
 project(fourblock-descent)
 set(32BLIT_PATH "../" CACHE PATH "Path to 32blit.cmake")
 set(PROJECT_SOURCE game.cpp leaderboard.cpp name-entry.cpp)
