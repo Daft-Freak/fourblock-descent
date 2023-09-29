@@ -306,6 +306,10 @@ static bool blockHitRot(int newRot) {
             if(rotPos.y < 0)
                 continue;
 
+            // rotated through the floor
+            if(rotPos.y >= gridHeight)
+                return true;
+
             //inside block
             if(block.pattern[y][x]) {
                 if(grid[rotPos.x + rotPos.y * gridWidth] != 0)
