@@ -238,7 +238,8 @@ static void placeBlock() {
     }
 }
 
-static bool blockHitX(int move) {
+// checks if block can be moved
+static bool blockHitMove(int move) {
     auto &block = blocks[blockFalling.id];
 
     for(int y = 0; y < block.height; y++) {
@@ -268,7 +269,8 @@ static bool blockHitX(int move) {
     return false;
 }
 
-static bool blockHit() {
+// checks if falling block has hit something
+static bool fallingBlockHit() {
     auto &block = blocks[blockFalling.id];
 
     for(int y = 0; y < block.height; y++) {
@@ -296,6 +298,7 @@ static bool blockHit() {
     return false;
 }
 
+// checks if rotating the falling block would hit something
 static bool blockHitRot(int newRot) {
     auto &block = blocks[blockFalling.id];
 
@@ -321,6 +324,7 @@ static bool blockHitRot(int newRot) {
     return false;
 }
 
+// pushes block back into bounds after rotation
 static void pushAwayFromSide() {
     auto &block = blocks[blockFalling.id];
 
@@ -697,7 +701,7 @@ void update(uint32_t time) {
         }
 
         if(move != 0) {
-            if(!blockHitX(move)) {
+            if(!blockHitMove(move)) {
                 blockFalling.pos.x += move;
                 move = 0;
             }
@@ -706,7 +710,7 @@ void update(uint32_t time) {
         int time = buttons & Button::DPAD_DOWN ? fallTime / 4 : fallTime;
 
         if(blockFalling.timer >= time) {
-            if(blockHit()) {
+            if(fallingBlockHit()) {
                 playDropSound();
                 placeBlock();
 
