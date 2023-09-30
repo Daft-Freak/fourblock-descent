@@ -524,6 +524,24 @@ static int autoPlaceBlockScore(int blockId, Point pos, int rot) {
             Point rotPos = pos + rotateIt(Point(x, y), block.width, block.height, rot);
 
             score += rotPos.y * rotPos.y;
+
+            // no further checks if touching the bottom
+            if(rotPos.y + 1 == gridHeight)
+                continue;
+
+            // work out which way is down in the rotated pattern
+            bool neg = rot > 1; // 2/3
+            int downX = (rot & 1) * (neg ? -1 : 1); // 1/3
+            int downY = ((~rot) & 1) * (neg ? -1 : 1); // 0/2
+
+            // check if there is a tile below this one in the pattern
+            if(x + downX >= 0 && x + downX < block.width && y + downY >= 0 && y + downY < block.height && block.pattern[y + downY][x + downX])
+                continue;
+
+            // reduce score if leaving a gap below
+            if(!grid[rotPos.x + (rotPos.y + 1) * gridWidth])
+                score -= rotPos.y * rotPos.y / 2;
+
         }
     }
 
