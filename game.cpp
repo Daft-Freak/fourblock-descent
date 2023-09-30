@@ -509,26 +509,25 @@ void render(uint32_t time) {
 static int autoDelay = 0;
 
 // brute force everything!
-static Rect blockBounds(int blockId, int rot) {
+
+// score based on Y coord of each tile in the pattern
+static int autoPlaceBlockScore(int blockId, Point pos, int rot) {
     auto &block = blocks[blockId];
 
-    int32_t minX = 5, maxX = -1;
-    int32_t minY = 5, maxY = -1;
+    int score = 0;
 
     for(int y = 0; y < block.height; y++) {
         for(int x = 0; x < block.width; x++) {
-            if(!block.pattern[y][x]) continue;
+            if(!block.pattern[y][x])
+                continue;
 
-            Point rotPos = rotateIt(Point(x, y), block.width, block.height, rot);
+            Point rotPos = pos + rotateIt(Point(x, y), block.width, block.height, rot);
 
-            minX = std::min(minX, rotPos.x);
-            minY = std::min(minY, rotPos.y);
-            maxX = std::max(maxX, rotPos.x);
-            maxY = std::max(maxY, rotPos.y);
+            score += rotPos.y * rotPos.y;
         }
     }
 
-    return Rect(minX, minY, maxX - minX, maxY - minY);
+    return score;
 }
 
 static void autoPlay() {
@@ -546,14 +545,13 @@ static void autoPlay() {
     auto &block = blocks[blockFalling.id];
 
     // attempt to place block as low as possible
-    int maxY = -1;
+    int maxScore = -1;
 
     auto savedPos = blockFalling.pos;
 
     for(int rot = 0; rot < 4; rot++) {
         for(int x = -3; x < gridWidth; x++) { // rotation can shift blocks to the right, so start a little to the left
             for(int y = gridHeight - 1; y >= 0; y--) {
-
                 blockFalling.pos = Point(x, y);
 
                 // check (rotated) w/h
@@ -567,11 +565,10 @@ static void autoPlay() {
                     continue;
 
                 if(!blockHitRot(rot, true)) {
-
-                    auto bounds = blockBounds(blockFalling.id, rot);
+                    int score = autoPlaceBlockScore(blockFalling.id, {x, y}, rot);
 
                     // check if lower (including offset from rotation)
-                    if(y + bounds.y <= maxY)
+                    if(score <= maxScore)
                         continue;
 
                     // check if possible to drop here
@@ -585,7 +582,7 @@ static void autoPlay() {
                         continue;
 
                     optX = x;
-                    maxY = y + bounds.y;
+                    maxScore = score;
                     optRot = rot;
                     break;
                 }
