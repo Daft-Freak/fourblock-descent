@@ -651,7 +651,8 @@ void update(uint32_t time) {
             // get name if the score can be added
             if(leaderboard.canAddScore(score)) {
                 needNameEntry = true;
-                showLeaderboard = false;
+                if(screen.bounds.w < 160)
+                    showLeaderboard = false;
             }
         } else {
             // reset auto-play
