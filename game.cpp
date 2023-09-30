@@ -551,7 +551,7 @@ static void autoPlay() {
     auto savedPos = blockFalling.pos;
 
     for(int rot = 0; rot < 4; rot++) {
-        for(int x = 0; x < gridWidth; x++) {
+        for(int x = -3; x < gridWidth; x++) { // rotation can shift blocks to the right, so start a little to the left
             for(int y = gridHeight - 1; y >= 0; y--) {
 
                 blockFalling.pos = Point(x, y);
