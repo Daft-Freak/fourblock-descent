@@ -299,7 +299,7 @@ static bool fallingBlockHit() {
 }
 
 // checks if rotating the falling block would hit something
-static bool blockHitRot(int newRot) {
+static bool blockHitRot(int newRot, bool checkXBounds = false) {
     auto &block = blocks[blockFalling.id];
 
     for(int y = 0; y < block.height; y++) {
@@ -312,6 +312,14 @@ static bool blockHitRot(int newRot) {
             // rotated through the floor
             if(rotPos.y >= gridHeight)
                 return true;
+
+            if(rotPos.x < 0 || rotPos.x >= gridWidth) {
+                if(checkXBounds)
+                    return true;
+                
+                // player input can ignore x bounds, it's adjusted later
+                continue;
+            }
 
             //inside block
             if(block.pattern[y][x]) {
@@ -558,7 +566,7 @@ static void autoPlay() {
                 if(x + w > gridWidth || y + h > gridHeight)
                     continue;
 
-                if(!blockHitRot(rot)) {
+                if(!blockHitRot(rot, true)) {
 
                     auto bounds = blockBounds(blockFalling.id, rot);
 
