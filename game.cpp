@@ -97,7 +97,7 @@ static int score = 0;
 static int lines = 0;
 static bool lastWasTetris = false;
 
-static bool gameStarted = false, gameEnded = false;
+static bool gameStarted = false, gameEnded = false, gamePaused = false;
 
 static int rowFalling[gridHeight]{0};
 
@@ -418,6 +418,9 @@ void init() {
 
 // drawing
 void render(uint32_t time) {
+    // "game" area (excliding info/leaderboard sidebar)
+    Rect leftRect(0, 0, gridWidth * blockSize, screen.bounds.h);
+
     screen.pen = Pen(0, 0, 0);
     screen.clear();
 
@@ -480,8 +483,18 @@ void render(uint32_t time) {
                     screen.sprite(nextBlock, nextBlockPos + Point(x * blockSize, y * blockSize));
             }
         }
+
+        // pause overlay
+        if(gamePaused) {
+            screen.pen = Pen(0, 0, 0, 200);
+            screen.rectangle(Rect(Point(0, 0), screen.bounds));
+
+            screen.pen = Pen(0xFF, 0xFF, 0xFF);
+            screen.text("Paused.", font, leftRect, true, TextAlign::center_center);
+        }
     } else {
-        Rect leftRect(0, 0, gridWidth * blockSize, screen.bounds.h);
+        // either before starting or after losing
+
         screen.pen = Pen(0, 0, 0, 200);
         screen.rectangle(Rect(Point(0, 0), screen.bounds));
 
@@ -619,6 +632,14 @@ static void autoPlay() {
 }
 
 void update(uint32_t time) {
+
+    // toggle pause if MENU pressed while game started
+    if(gameStarted && !gameEnded && (buttons.released & Button::MENU))
+        gamePaused = !gamePaused;
+
+    if(gamePaused)
+        return;
+
     if(gameEnded || !gameStarted) {
         // no game in progress, we've either lost or not started yet
 
