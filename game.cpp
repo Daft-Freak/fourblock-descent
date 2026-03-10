@@ -145,14 +145,23 @@ static Point rotateIt(Point pos, int w, int h, int rot) {
     return Point((rX + center) / 2, (rY + center) / 2);
 }
 
+static int calculateScore(int clearedLines) {
+    
+    int addedScore = clearedLines * 10 + lines;
+
+    //"tetris"
+    if(clearedLines == 4)
+        addedScore *= lastWasTetris ? 3 : 2;
+
+    return addedScore;
+}
+
 static void checkLine() {
     //most lines possible at once = 4
     for(int l = 0; l < 4; l++) {
-        int addedScore = 0;
 
         int clearedLines = 0;
         int found = 0;
-        bool stop = false;
 
         for(int y = gridHeight - 1; y >= 0; y--) {
             int isLine = true;
@@ -163,14 +172,13 @@ static void checkLine() {
                 }
             }
 
+            // this line is not complete and a previous one was, we're done
             if(found && !isLine)
-                stop = true;
+                break;
 
+            // track y of first line
             if(isLine && found == 0)
                 found = y;
-
-            if(stop)
-                break;
 
             if(found != 0)
                 clearedLines++;
@@ -179,11 +187,7 @@ static void checkLine() {
         if(clearedLines == 0)
             return;
 
-        addedScore = clearedLines * 10 + lines;
-
-        //"tetris"
-        if(clearedLines == 4)
-            addedScore *= lastWasTetris ? 3: 2;
+        int addedScore = calculateScore(clearedLines);
 
         lastWasTetris = clearedLines == 4;
 
