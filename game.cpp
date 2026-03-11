@@ -9,7 +9,7 @@ using namespace blit;
 
 static const Font font(asset_font8x8);
 
-static const int gridWidth = 10, gridHeight = 15;
+static const int gridWidth = 10, gridHeight = 16;
 static uint8_t grid[gridWidth * gridHeight]{0};
 
 static const int blockSize = 8;
@@ -206,7 +206,7 @@ static void checkLine() {
         for(int y = found; y > found - clearedLines; y--) {
             for(int x = 0; x < gridWidth; x++) {
                 BlockParticle b;
-                b.pos = Vec2(x * blockSize, y * blockSize);
+                b.pos = Vec2(x * blockSize, (y - 1) * blockSize);
                 b.vel.x = (blit::random() / static_cast<float>(0xFFFFFFFF)) * 2.0f - 1.0f;
                 b.vel.y = (blit::random() / static_cast<float>(0xFFFFFFFF)) * -1.0f;
                 b.sprite = grid[x + y * gridWidth] - 1;
@@ -391,7 +391,7 @@ static void reset() {
         for(int x = 0; x < gridWidth; x++) {
             if(grid[x + y * gridWidth] != 0) {
                 BlockParticle b;
-                b.pos = Vec2(x * blockSize, y * blockSize);
+                b.pos = Vec2(x * blockSize, (y - 1) * blockSize);
                 b.vel.x = (blit::random() / static_cast<float>(0xFFFFFFFF)) * 2.0f - 1.0f;
                 b.vel.y = (blit::random() / static_cast<float>(0xFFFFFFFF)) * -1.0f;
                 b.sprite = grid[x + y * gridWidth] - 1;
@@ -443,10 +443,11 @@ void render(uint32_t time) {
     screen.pen = Pen(0xFF,0xFF,0xFF);
     screen.rectangle(Rect(0, 0, gridWidth * blockSize, gridHeight * blockSize));
 
-    for(int y = 0; y < gridHeight; y++) {
+    // skip row 0 (it's off the top of the screen)
+    for(int y = 1; y < gridHeight; y++) {
         for(int x = 0; x < gridWidth; x++) {
             if(grid[x + y * gridWidth] != 0) {
-                screen.sprite(grid[x + y * gridWidth] - 1, Point(x * blockSize, y * blockSize - rowFalling[y] / rowFallScale));
+                screen.sprite(grid[x + y * gridWidth] - 1, Point(x * blockSize, (y - 1) * blockSize - rowFalling[y] / rowFallScale));
             }
         }
     }
@@ -460,7 +461,7 @@ void render(uint32_t time) {
                 auto rotPos = blockFalling.pos + rotateIt(Point(x, y), block.width, block.height, blockFalling.rot);
 
                 if(block.pattern[y][x])
-                    screen.sprite(blockFalling.id, Point(rotPos.x * blockSize, rotPos.y * blockSize));
+                    screen.sprite(blockFalling.id, Point(rotPos.x * blockSize, (rotPos.y - 1) * blockSize));
             }
         }
     }
