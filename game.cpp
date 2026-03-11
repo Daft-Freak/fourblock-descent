@@ -95,6 +95,7 @@ static int move = 0, rotate = 0;
 
 static int score = 0;
 static int lines = 0;
+static int combo = 0;
 static bool lastWasTetris = false;
 
 static bool gameStarted = false, gameEnded = false, gamePaused = false;
@@ -153,6 +154,9 @@ static int calculateScore(int clearedLines) {
     if(clearedLines == 4)
         addedScore *= lastWasTetris ? 3 : 2;
 
+    // bonus for combo (1.5 for 2 in a row, 2.25 for 3, ...)
+    addedScore = addedScore * std::pow(1.5f, combo);
+
     return addedScore;
 }
 
@@ -184,8 +188,15 @@ static void checkLine() {
                 clearedLines++;
         }
 
-        if(clearedLines == 0)
+        // stop if there are no more full lines
+        if(clearedLines == 0) {
+            // reset combo if this was the first try
+            if(l == 0)
+                combo = 0;
+            else // otherwise we got at least one, so increment
+                combo++;
             return;
+        }
 
         int addedScore = calculateScore(clearedLines);
 
