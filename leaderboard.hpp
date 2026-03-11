@@ -25,6 +25,7 @@ private:
     };
 
     Entry entries[numEntries];
+    int lastUpdatedEntry = -1;
 
     const blit::Font &font;
     blit::Rect displayRect;

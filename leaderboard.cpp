@@ -25,12 +25,17 @@ void Leaderboard::render() {
 
     int y = displayRect.y + font.char_h + font.spacing_y;
 
+    int i = 0;
     for(auto &entry : entries) {
+        // highlight new entry
+        screen.pen = i == lastUpdatedEntry ? Pen{255, 0, 0} : Pen{255, 255, 255};
+
         Rect lineRect(displayRect.x, y, displayRect.w, font.char_h);
         screen.text(entry.name, font, lineRect);
         screen.text(std::to_string(entry.score), font, lineRect, true, TextAlign::top_right);
 
         y += font.char_h + font.spacing_y;
+        i++;
     }
 
     screen.clip = oldClip;
@@ -57,6 +62,8 @@ void Leaderboard::addScore(const char *name, int score) {
 
     entries[i].score = score;
     strncpy(entries[i].name, name, 8);
+
+    lastUpdatedEntry = i;
 
     write_save(entries);
 }
