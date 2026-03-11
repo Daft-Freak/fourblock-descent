@@ -396,6 +396,7 @@ void init() {
     set_screen_mode(ScreenMode::lores);
 
     leaderboard.load();
+    nameEntry.loadLastName();
 
     int padding = 2;
     Rect leaderboardRect;
@@ -657,6 +658,7 @@ void update(uint32_t time) {
                 // got name, update leaderboard
                 needNameEntry = false;
                 leaderboard.addScore(nameEntry.getName().c_str(), score);
+                nameEntry.saveName();
             } else
                 reset(); // start new game;
         }

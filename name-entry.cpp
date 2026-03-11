@@ -1,5 +1,6 @@
 #include "engine/api.hpp"
 #include "engine/engine.hpp"
+#include "engine/save.hpp"
 
 #include "name-entry.hpp"
 
@@ -65,4 +66,12 @@ std::string NameEntry::getName() const {
         ret.pop_back();
 
     return ret;
+}
+
+void NameEntry::loadLastName() {
+    read_save(name, lastNameSaveSlot);
+}
+
+void NameEntry::saveName() {
+    write_save(name, lastNameSaveSlot);
 }

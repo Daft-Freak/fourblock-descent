@@ -16,9 +16,14 @@ public:
 
     std::string getName() const;
 
+    void loadLastName();
+    void saveName();
+
 private:
     static constexpr const char *charList = "ABCDEFGHIJKLMNOPQRSTUVWXYZ.?!_ ";
     static const int numChars = 31;
+
+    static const int lastNameSaveSlot = 256;
 
     const blit::Font &font;
     blit::Rect displayRect;
